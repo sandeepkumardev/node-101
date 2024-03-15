@@ -1,38 +1,65 @@
 const express = require("express");
-const { create, update } = require("lodash");
 
 const app = express();
 const port = 4000;
 
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  const data = req.query;
-  console.log(data);
+// dummy database
+let users = [];
 
-  res.send("hello nodejs");
+app.get("/", (req, res) => {
+  // return all users
+  res.json(users);
 });
 
 app.post("/create", (req, res) => {
   const data = req.body;
-  console.log(data);
 
-  // ..
+  // generate unique id
+  const id = Date.now();
 
-  res.json(data);
+  // create a new insatnce
+  const newUser = {
+    id: id,
+    name: data.name,
+    deg: data.deg,
+  };
+
+  users.push(newUser);
+
+  res.json(newUser);
 });
 
 app.put("/update/:id", (req, res) => {
   const id = req.params.id;
-  const { authorization } = req.headers;
+  const data = req.body;
 
-  // validate token
-  // validate user
+  // validate required data
+  if (!data.deg) {
+    return res.status(400).send("deg is required");
+  }
 
-  // update
+  // find user index
+  const userIndex = users.findIndex((user) => user.id === parseInt(id));
 
-  console.log(authorization);
-  res.send(`update with id ${id}`);
+  if (userIndex === -1) {
+    return res.status(404).send("user not found");
+  }
+
+  // update value where user index exist
+  users[userIndex].deg = data.deg;
+  res.json(users[userIndex]);
+});
+
+app.delete("/delete/:id", (req, res) => {
+  const id = req.params.id;
+
+  // find user index
+  const userIndex = users.findIndex((user) => user.id === parseInt(id));
+
+  delete users[userIndex];
+  res.send("User deleted!");
 });
 
 app.listen(port, () => {
